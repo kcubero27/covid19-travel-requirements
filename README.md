@@ -1,10 +1,10 @@
 # Covid19 Travel Requirements 💉
 
-Covid19 Travel Requirements is a small Minimum Viable Product (MVP) where users can send an SMS to a phone number with [country code](https://datahub.io/core/country-list)(ISO 3166-1) and they will receive a summary of restrictions plus a link with further instructions.
+Covid19 Travel Requirements is a small Minimum Viable Product (MVP) where users can send an SMS to a phone number with country code and they will receive a summary of restrictions plus a link with further instructions.
 
 ## Requirements
 
-For development, you will only need Node.js installed on your environement.
+For development, you will only need Node.js installed on your environment.
 And please use the appropriate [Editorconfig](http://editorconfig.org/) plugin for your Editor (not mandatory).
 
     node > 12.0
@@ -59,6 +59,12 @@ If everything when fine, you should run
 Just go on [official Node.js website](http://nodejs.org/) & grab the installer.
 Also, be sure to have `git` available in your PATH, `npm` might need it.
 
+### Ngrok
+
+Ngrok is a cross-platform application that exposes local server ports to the Internet. Their website claims, “[so you can] spend more time programming—one command for an instant, secure URL to your localhost server through any NAT or firewall.”.
+
+There are multiple ways of [downloading](https://ngrok.com/download) Ngrok on your laptop.
+
 ## Installation
 
 1. Clone this repo: `$ git clone git@github.com:kcubero27/covid19-travel-requirements.git`
@@ -70,6 +76,16 @@ Also, be sure to have `git` available in your PATH, `npm` might need it.
 
 Copy `.env.dist` to `.env` then edit it with your account values.
 
+#### Amadeus account
+
+Create a new account in [Amadeus](https://developers.amadeus.com/). Once created, go to https://developers.amadeus.com/my-apps and create a new app. Later on, you'll be able to see the API Key and API Secret.
+
+#### Twilio account
+
+Create a new account in [Twilio](https://www.twilio.com/). Once it's been created, you'll be able to see the Account SID and Auth Token in your [dashboard](https://www.twilio.com/console).
+
+In order to make the app work, we need a phone number. For that, go to [Develop > Phone numbers > Manage > Active numbers](https://console.twilio.com/us1/develop/phone-numbers/manage/active?frameUrl=%2Fconsole%2Fphone-numbers%2Fincoming%3Fx-target-region%3Dus1), press on Buy a number, and fill in the form. After the submission of the form, press on the new phone created and fill in the section Messaging > A MESSAGE COMES IN and paste your ngrok http URL such as `http://dfb0-31-214-184-130.ngrok.io/sms` HTTP POST.
+
 ## Development
 
 Navigate to the project folder and run the following command in the terminal:
@@ -78,7 +94,15 @@ Navigate to the project folder and run the following command in the terminal:
 
 This will open a new tab in your browser on `http://localhost:1337`.
 
+In order to expose our app to the internet, we need to use ngrok:
+
+    $ ngrok http 1337
+
+This will provide you two different URLs where your app is accessible from the outside. The http URL will be the one you will paste in Twilio webhook.
+
 ## Logic
+
+Users will send an SMS to the Twilio Phone Number such as `+1 833 471 1481` passing through a [Country ISO 3166-1 Code](https://datahub.io/core/country-list). This message will be forwarded to the specified Webhook, in this case, our application. In our application we will execute a request to Amadeus API using that country code in order to get all the restrictions for that country. Once we have a response, we will use the Twilio SDK in order to send a message from our Twilio Phone Number to the user that wrote the message.
 
 ## APIs
 
@@ -93,10 +117,12 @@ This will open a new tab in your browser on `http://localhost:1337`.
 
 ## Learnings
 
-1. Twilio SMS API has a limit of characters (1.600) which seems small comparing to the ammount of information that needs to be sent.
+1. Twilio SMS API has a limit of characters (1.600) which seems small comparing to the amount of information that needs to be sent.
 2. It is very easy to use Twilio as all the doc is updated and with examples.
+3. There are currently no Spanish phones. However, there is a process where in 4-6 weeks they can provide you one. In my opinion, the experience is worse than using a phone in the US as you may have it in less than a minute.
 
 ## Improvements
 
-- Improve README.md with the steps in order to get the Account SSID and the token from Amadeus API
-- Improve logic section with a flow
+- Transform the user input country name into a country code.
+- Improve the message sent to users so that there is more information. For example, we could create a website with all the info and just send that email to users.
+- Amadeus API is only in English which makes this app only usable for english speakers.
